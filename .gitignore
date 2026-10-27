@@ -1,0 +1,15 @@
+.env
+venv/
+__pycache__/
+*.pyc
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+# frontend (Remix)
+frontend/node_modules/
+frontend/build/
+frontend/.cache/
+frontend/.env
+frontend/old-ui/
+
+tests/
+*.zip
