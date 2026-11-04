@@ -59,7 +59,7 @@ def _build_chat_model(provider:str, model:str, api_key: str, max_tokens:int,reas
         if reasoning_effort:
             extra["reasoning_effort"] = reasoning_effort
         if thinking_budget is not None:
-            extra["thinking_bugdet"] = thinking_budget
+            extra["thinking_budget"] = thinking_budget
 
         return ChatGoogleGenerativeAI(
             model=model,

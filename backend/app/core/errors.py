@@ -63,3 +63,14 @@ class SiteNotFoundError(AppError):
     status_code = 404
     message = "Site not found."       
 
+class UrlContentError(AppError):
+    status_code = 422
+    message = "Could not read this web page. It may block bots, or load its content with JavaScript."
+
+class UserNotFoundError(AppError):
+    status_code = 404
+    message = "User not found."
+
+class UserExistsError(AppError):
+    status_code = 409
+    message = "A user with this email already exists."        

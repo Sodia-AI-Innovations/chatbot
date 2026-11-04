@@ -3,7 +3,8 @@ import os
 import uuid
 from contextlib import suppress
 from datetime import datetime, timezone
-
+from app.loaders.crawler import load_site
+from app.loaders.url_loader import load_url
 from app.core.config import get_settings
 from app.core.errors import DocumentNotFoundError
 from app.loaders.registry import get_loader
@@ -73,6 +74,34 @@ class DocumentService:
 
           logger.info("Document processing compllted: id=%s chunks=%d", document_id, len(chunks))
           return info
+    def ingest_url(self, url:str, tenant_id:str | None = None, crawl: bool = False, max_pages: int = 15) -> DocumentInfo:
+          tenant_id = tenant_id or self._settings.default_tenant_id
+          document_id = uuid.uuid4().hex
+          logger.info("URL ingest started: id=%s url=%s", document_id, url)
+
+          pages = load_site(url, max_pages) if crawl else load_url(url)
+          chunks = self._chunker.chunk_pages(pages, document_id, url[:255])
+          vectors = self._embedder.embed_documents([c.text for c in chunks])
+
+          try:
+                self._store.add_chunks(chunks, vectors, tenant_id)
+                info = DocumentInfo(
+                      document_id=document_id,
+                      filename=url[:255],
+                      file_type="url",
+                      size_bytes=sum(len(p.text.encode("utf-8")) for p in pages),
+                      page_count=None,
+                      chunk_count=len(chunks),
+                      status="processed",
+                      uploaded_at=datetime.now(timezone.utc),    
+                )
+                self._repository.add(tenant_id, info)
+          except Exception:
+                with suppress(Exception):
+                      self._store.delete_document(document_id, tenant_id)
+                raise
+          logger.info("URL ingest completed: id=%s chunks=%d", document_id, len(chunks))
+          return info          
               
     def list_documents(self, tenant_id: str | None =None)-> list[DocumentInfo]:
          return self._repository.list_all(tenant_id or self._settings.default_tenant_id)

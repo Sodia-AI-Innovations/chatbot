@@ -2,13 +2,13 @@ import uuid
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends,File , UploadFile
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_document_service, get_tenant_id
 from app.core.config import get_settings
 from app.core.db import get_db
-from app.core.errors import InvalidTokenError, SiteNotFoundError
+from app.core.errors import InvalidDomainError, InvalidTokenError, SiteNotFoundError
 from app.models.bot_token import BotToken
 from app.models.response import DocumentInfo
 from app.services.document_service import DocumentService
@@ -23,6 +23,8 @@ PUBLIC_URL = "http://localhost:8000"
 class SiteCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     domain: str
+class UrlIn(BaseModel):
+    url: HttpUrl    
 
 def build_snippet(token:str) -> str:
     src = f"{PUBLIC_URL}/widget.js?token={quote(token)}"
@@ -125,4 +127,23 @@ def delete_site_documet(
     bt = get_owned_site(db, tenant_id, site_id)
     service.delete_document(document_id, str(bt.id))
     return {"document_id" : document_id, "status": "deleted"}
+
+
+
+@router.post("/sites/{site_id}/documents/url", response_model=DocumentInfo, status_code=201)
+
+def url_belongs_to(url: str, domain: str) -> bool:
+    host = normalize_domain(url)
+    return host == domain or host.endswith("." + domain)
+
+def add_site_url(
+    site_id: uuid.UUID,
+    body: UrlIn,
+    tenant_id: str = Depends(get_db),
+    service: DocumentService = Depends(get_document_service),
+):
+    bt = get_owned_site(db, tenant_id, site_id)
+    if not url_belongs_to(str(body.url), bt.domain):
+        raise InvalidDomainError("This link must br on your registered domain.")
+    return  service.ingest_url(str(body.url), str(bt.id), body.crawl, body.max_pages)
 

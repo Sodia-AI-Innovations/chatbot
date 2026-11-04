@@ -12,6 +12,7 @@ export default function Shell({ children }) {
                     </Link>
                     <nav className="shell-nav">
                         <NavLink to="/dashboard" className="nav-link">Sites</NavLink>
+                        <NavLink to="/admin" className="nav-link">Admin</NavLink>
                         <Link to="/sites/new" className="btn btn-primary">
                           <Plus size={16} /> New site
                         </Link>

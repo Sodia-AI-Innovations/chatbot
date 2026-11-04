@@ -37,25 +37,8 @@ class RagService:
 
         if NOT_FOUND_MESSAGE in llm_result.text:
             logger.info("Model reported the answer is not in the context")
-            return ChatAnswer(answer=NOT_FOUND_MESSAGE, sources=[])
-        return ChatAnswer(answer=llm_result.text, sources=self._build_sources(results))
-
-
-    @staticmethod
-    def _build_sources(results: list[SearchResult]) -> list[Source]:
-        seen: dict[tuple, Source] = {}
-        for r in results: 
-            key = (r.chunk.document_id, r.chunk.page_number)
-            if key not in seen:
-                seen[key] = Source(
-                    document_id=r.chunk.document_id,
-                    filename=r.chunk.filename,
-                    page=r.chunk.page_number,
-                    chunk_id=r.chunk.chunk_id,
-                    score=round(r.score, 3),
-                )
-        return list(seen.values())   
-
+            return ChatAnswer(answer=NOT_FOUND_MESSAGE, sources=[], input_token=llm_result.input_tokens, output_token=llm_result.output_tokens,)
+        return ChatAnswer(answer=llm_result.text, sources=self._build_sources(results), input_token=llm_result.input_tokens, output_token=llm_result.output_tokens,)
     SNIPPET_CHARS = 200
     @classmethod
     def _snippet(cls, text:str) -> str:

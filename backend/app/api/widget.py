@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
+from app.services.usage import log_usage
 from app.api.deps import get_rag_service
 from app.core.db import get_db
 from app.core.errors import DomainNotAllowedError, InvalidTokenError
@@ -35,5 +35,8 @@ def widget_chat(
     body: WidgetChatRequest,
     bt: BotToken = Depends(resolve_token),
     rag: RagService = Depends(get_rag_service),
+    db: Session = Depends(get_db),
 ):
     return rag.ask(body.question, tenant_id=str(bt.id), document_ids=None)
+    log_usage(db, str(bt.id), None, "chat", result.input_tokens, result.output_tokens)
+    return result

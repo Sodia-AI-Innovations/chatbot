@@ -12,7 +12,7 @@ def build_prompt(question: str, chunk_texts: list[str]) -> tuple[str, str]:
     """Returns (system_prompt, user_prompt)."""
     blocks = []
     for i , text in enumerate(chunk_texts, start=1):
-        safe = text.replace("CONTEXT START ", ""). replace("CONTEXT END", "")
+        safe = text.replace("CONTEXT START", ""). replace("CONTEXT END", "")
         blocks.append(f"[{i}] {safe}")
 
     context = "\n\n".join(blocks)

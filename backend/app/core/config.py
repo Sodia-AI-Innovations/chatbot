@@ -36,6 +36,11 @@ class Settings(BaseSettings):
 
     llm_reasoning_effort: str  = ""
     llm_thinking_budget: int | None = None
+
+    admin_key: str = ""
+    price_per_1k_tokens: float = 0.0
+    currency: str = "INR"
+
     @property
     def allowed_ext_list(self) -> list[str]:
         return [e.strip().lower() for e in self.allowed_extensions.split(",")]

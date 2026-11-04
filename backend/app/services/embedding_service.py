@@ -28,11 +28,13 @@ class landChainEmbeddingService(BaseEmbeddingService):
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         if not texts:
-            return[]
+            return []
+        vectors: list[list[float]] = []
         try:
-            vectors = self._embeddings.embed_documents(texts)
+            for i in range(0, len(texts), 50):          # 50 texts per request
+                vectors += self._embeddings.embed_documents(texts[i:i + 50])
         except Exception as e:
-            logger.error("Embedding failed: %s", type(e).__name__)
+            logger.error("Embedding failed: %s: %s", type(e).__name__, str(e)[:300])
             raise EmbeddingError() from e
         logger.info("Embedded %d texts", len(texts))
         return vectors

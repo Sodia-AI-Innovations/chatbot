@@ -17,3 +17,6 @@ numpy
 
 pytest
 httpx
+
+trafilatura
+sqlalchemy

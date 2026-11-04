@@ -10,21 +10,27 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import Receive, Scope, Send
 
-from app.api import chat, documents, health, widget
+from app.api import admin, chat, documents, health, widget
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.logging import request_id_var, setup_logging
-from app.core.db import Base, engine
+from app.core.db import Base, engine, SessionLocal
 from app.models import bot_token as _
+from app.models import usage as _u
 from app.api.sites import router as sites_router
 from pathlib import Path
 from fastapi.responses import FileResponse
-
+from app.models import user as _usr
+from app.models.user import User
 
 Base.metadata.create_all(bind=engine)
 
 
 settings = get_settings()
+with SessionLocal() as _db:
+    if not _db.get(User, settings.default_tenant_id):
+        _db.add(User(id=settings.default_tenant_id, name="Default owner", email="default@example.com"))
+        _db.commit()
 setup_logging(settings.log_level)
 logger = logging.getLogger(__name__)
 
@@ -33,7 +39,7 @@ app.include_router(health.router)
 app.include_router(documents.router)
 app.include_router(chat.router)
 app.include_router(sites_router)
-
+app.include_router(admin.router)
 widget_app = FastAPI()
 widget_app.add_middleware(
     CORSMiddleware,
@@ -98,6 +104,9 @@ async def widget_app_error(request: Request, exc: AppError):
         content={"error": type(exc).__name__, "message": exc.message},
     )
 
+@app.exception_handler(AppError)
+async def handle_app_error(request: Request, exc: AppError):
+    return error_response(exc.status_code, type(exc).__name__, exc.message)
 
 @app.exception_handler(RequestValidationError)
 async def handle_validation_error(request: Request, exc: RequestValidationError):
