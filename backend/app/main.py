@@ -124,7 +124,11 @@ async def handle_http_error(request: Request, exc: StarletteHTTPException):
 
 @app.get("/widget.js", include_in_schema=False)
 def serve_widget():
-    return FileResponse(WIDGET_JS, media_type="application/javascript")
+    return FileResponse(
+        WIDGET_JS,
+        media_type="application/javascript",
+        headers={"Cache-Control": "no-cache, must-revalidate"},
+    )
 
 
 logger.info("App started in %s mode", settings.env)

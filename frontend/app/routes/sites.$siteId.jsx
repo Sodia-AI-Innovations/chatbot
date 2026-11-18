@@ -53,6 +53,21 @@ export async function action({request, params}) {
         }
         return failed.length ? { ok: false, error: failed.join(" | ")} : { ok: true };
     }
+     if (intent === "add-url") {
+        const url = String(form.get("url") || "").trim();
+        if (!url) return { ok: false, error: "Paste a link first." };
+
+        const res = await callApi(`${base}/documents/url`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                url,
+                crawl: form.get("crawl") === "on",
+                max_pages: 15,
+            }),
+        });
+        return res.ok ? { ok: true } : { ok: false, error: res.error };
+    }
     if(intent === "delete-doc") {
         const id = String(form.get("document_id") || "");
         const res = await callApi(`${base}/documents/${encodeURIComponent(id)}`, { method: "DELETE" });

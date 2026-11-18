@@ -24,7 +24,9 @@ class SiteCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     domain: str
 class UrlIn(BaseModel):
-    url: HttpUrl    
+    url: HttpUrl
+    crawl: bool = False
+    max_pages: int = Field(default=15, ge=1, le=50)  
 
 def build_snippet(token:str) -> str:
     src = f"{PUBLIC_URL}/widget.js?token={quote(token)}"
@@ -128,22 +130,19 @@ def delete_site_documet(
     service.delete_document(document_id, str(bt.id))
     return {"document_id" : document_id, "status": "deleted"}
 
-
-
-@router.post("/sites/{site_id}/documents/url", response_model=DocumentInfo, status_code=201)
-
 def url_belongs_to(url: str, domain: str) -> bool:
     host = normalize_domain(url)
     return host == domain or host.endswith("." + domain)
 
+
+@router.post("/sites/{site_id}/documents/url", response_model=DocumentInfo, status_code=201)
 def add_site_url(
     site_id: uuid.UUID,
     body: UrlIn,
-    tenant_id: str = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db),
     service: DocumentService = Depends(get_document_service),
 ):
     bt = get_owned_site(db, tenant_id, site_id)
-    if not url_belongs_to(str(body.url), bt.domain):
-        raise InvalidDomainError("This link must br on your registered domain.")
-    return  service.ingest_url(str(body.url), str(bt.id), body.crawl, body.max_pages)
+    return service.ingest_url(str(body.url), str(bt.id), body.crawl, body.max_pages)
 

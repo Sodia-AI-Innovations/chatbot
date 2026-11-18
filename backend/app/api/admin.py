@@ -88,7 +88,7 @@ def list_users(db: Session = Depends(get_db)):
         out.append({
             "id": u.id, "name": u.name, "email": u.email, "role": u.role,
             "joined": u.created_at.isoformat(), "chatbots": len(mine),
-            "tokal_tokens": total, "cost": _cost(total),
+            "total_tokens": total, "cost": _cost(total),
         })
     return out
 

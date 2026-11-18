@@ -12,11 +12,16 @@
     console.warn("[chatbot] Missing token in script src.");
     return;
   }
-  if (document.getElementById("rb-root")) return;
+  if (document.getElementById("rb-host")) return;
 
   var CSS = [
     "#rb-root{all:initial;font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif}",
     "#rb-root *{box-sizing:border-box;font-family:inherit}",
+    /* neutralise whatever the host site does to buttons (zero specificity, so our own rules still win) */
+    ":where(#rb-root) button{appearance:none;-webkit-appearance:none;margin:0;padding:0;border:0;border-radius:0;",
+      "box-shadow:none;text-shadow:none;min-width:0;min-height:0;width:auto;height:auto;filter:none;",
+      "background:none;background-image:none;text-transform:none;letter-spacing:normal;font:inherit;line-height:1;",
+      "text-decoration:none;transform:none}",
 
     /* ---- floating button ---- */
     "#rb-fab{position:fixed;right:22px;bottom:22px;z-index:2147483000;animation:rb-float 3s ease-in-out infinite}",
@@ -55,16 +60,17 @@
     /* ---- header ---- */
     "#rb-head{position:relative;display:flex;align-items:center;gap:6px;padding:14px 16px;color:#fff;",
       "background:linear-gradient(135deg,#f0abfc,#e040fb)}",
-    "#rb-title{flex:1;font-size:15px;font-weight:600;padding-left:4px}",
-    ".rb-hbtn{width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:#fff;cursor:pointer;",
-      "display:grid;place-items:center;transition:background .2s}",
-    ".rb-hbtn:hover{background:rgba(255,255,255,.22)}",
-    ".rb-hbtn svg{width:20px;height:20px}",
+    "#rb-title{flex:1;font-size:15px;font-weight:600;padding-left:6px;color:#fff}",
+    "#rb-root .rb-hbtn{width:34px;height:34px;min-width:34px;max-width:34px;padding:0;margin:0;border:0;border-radius:50%;",
+      "background:transparent;color:#fff;cursor:pointer;box-shadow:none;line-height:1;flex-shrink:0;",
+      "display:flex;align-items:center;justify-content:center;transition:background .2s}",
+    "#rb-root .rb-hbtn:hover{background:rgba(255,255,255,.22)}",
+    "#rb-root .rb-hbtn svg{display:block;width:20px;height:20px;margin:0;flex:none}",
     "#rb-menu{position:absolute;right:48px;top:52px;background:#fff;color:#4a044e;border-radius:12px;",
       "box-shadow:0 10px 30px rgba(74,4,78,.22);padding:6px;display:none;z-index:2}",
     "#rb-menu.show{display:block}",
-    "#rb-menu button{border:0;background:transparent;color:inherit;font-size:13px;padding:8px 14px;",
-      "border-radius:8px;cursor:pointer;white-space:nowrap}",
+    "#rb-menu button{display:block;margin:0;border:0;background:transparent;color:inherit;font-size:13px;padding:8px 14px;",
+      "border-radius:8px;cursor:pointer;white-space:nowrap;box-shadow:none;line-height:1.4;width:auto;min-width:0}",
     "#rb-menu button:hover{background:#fdf0ff}",
 
     /* ---- messages ---- */
@@ -91,37 +97,45 @@
     "#rb-form{display:flex;align-items:center;gap:6px;border:1.5px solid #ecdcef;border-radius:999px;",
       "padding:5px 6px 5px 16px;transition:border-color .2s,box-shadow .2s}",
     "#rb-form:focus-within{border-color:#e040fb;box-shadow:0 0 0 3px rgba(224,64,251,.15)}",
-    "#rb-input{flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:13.5px;color:#2b0a30;padding:7px 0}",
+    "#rb-input{flex:1;min-width:0;height:auto;margin:0;border:0;outline:none;box-shadow:none;border-radius:0;",
+      "background:transparent;font-size:13.5px;color:#2b0a30;padding:7px 0}",
     "#rb-input::placeholder{color:#b9a3be}",
-    "#rb-send{width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:#d946ef;cursor:pointer;",
-      "display:grid;place-items:center;transition:transform .2s,background .2s}",
-    "#rb-send:hover{background:#fdf0ff;transform:scale(1.1)}",
-    "#rb-send:disabled{opacity:.4;cursor:default;transform:none}",
-    "#rb-send svg{width:20px;height:20px}",
+    "#rb-root #rb-send{width:36px;height:36px;min-width:36px;max-width:36px;padding:0;margin:0;border:0;border-radius:50%;",
+      "background:transparent;color:#d946ef;cursor:pointer;box-shadow:none;line-height:1;flex-shrink:0;",
+      "display:flex;align-items:center;justify-content:center;align-self:center;position:static;",
+      "transition:transform .2s,background .2s}",
+    "#rb-root #rb-send:hover{background:#fdf0ff;transform:scale(1.1)}",
+    "#rb-root #rb-send:disabled{opacity:.4;cursor:default;transform:none}",
+    "#rb-root #rb-send svg{display:block;width:20px;height:20px;margin:0;flex:none}",
 
     "@media (prefers-reduced-motion:reduce){#rb-root *{animation:none!important;transition:none!important}}"
   ].join("");
 
   var ICON_CHAT = '<svg class="rb-ic-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg>';
   var ICON_X = '<svg class="rb-ic-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-  var ICON_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
   var ICON_DOTS = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
   var ICON_X_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   var ICON_SEND = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.5 20.5l19-8.5-19-8.5v6.6l13 1.9-13 1.9z"/></svg>';
 
-  var WELCOME = "Hi! Ask me anything about the uploded document.";
+  var WELCOME = "Hi! Ask me anything about our company.";
 
   function boot() {
+    // Shadow DOM: the host site's CSS can't reach inside, so buttons/icons always look the same.
+    var host = document.createElement("div");
+    host.id = "rb-host";
+    host.setAttribute("data-widget-version", "shadow-2");
+    host.style.cssText = "all:initial";
+    var shadow = host.attachShadow({ mode: "open" });
+
     var style = document.createElement("style");
     style.textContent = CSS;
-    document.head.appendChild(style);
+    shadow.appendChild(style);
 
     var root = document.createElement("div");
     root.id = "rb-root";
     root.innerHTML =
       '<div id="rb-panel" role="dialog" aria-label="Chat">' +
         '<div id="rb-head">' +
-          '<button class="rb-hbtn" id="rb-min" type="button" aria-label="Minimize">' + ICON_DOWN + '</button>' +
           '<div id="rb-title">Ask us anything</div>' +
           '<button class="rb-hbtn" id="rb-more" type="button" aria-label="Menu">' + ICON_DOTS + '</button>' +
           '<button class="rb-hbtn" id="rb-close" type="button" aria-label="Close">' + ICON_X_SM + '</button>' +
@@ -135,7 +149,8 @@
       '</div>' +
       '<div id="rb-greet">Need help? Ask me!</div>' +
       '<div id="rb-fab"><button id="rb-btn" type="button" aria-label="Open chat">' + ICON_CHAT + ICON_X + '</button></div>';
-    document.body.appendChild(root);
+    shadow.appendChild(root);
+    document.body.appendChild(host);
 
     var $ = function (id) { return root.querySelector(id); };
     var msgs = $("#rb-msgs"), form = $("#rb-form"), input = $("#rb-input"), send = $("#rb-send");
@@ -173,7 +188,6 @@
 
     btn.addEventListener("click", function () { setOpen(!root.classList.contains("open")); });
     greet.addEventListener("click", function () { setOpen(true); });
-    $("#rb-min").addEventListener("click", function () { setOpen(false); });
     $("#rb-close").addEventListener("click", function () { setOpen(false); reset(); });
     $("#rb-more").addEventListener("click", function () { menu.classList.toggle("show"); });
     $("#rb-clear").addEventListener("click", function () { menu.classList.remove("show"); reset(); });

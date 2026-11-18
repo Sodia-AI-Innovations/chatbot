@@ -17,6 +17,6 @@ def chat(
     rag: RagService = Depends(get_rag_service),
     db: Session = Depends(get_db),
 ):
-    return rag.ask(request.question, tenant_id=tenant_id, document_ids=request.document_ids)
-    log_usage(db, str(bt.id), None, "chat", result.input_tokens, result.output_tokens)
+    result = rag.ask(request.question, tenant_id=tenant_id, document_ids=request.document_ids)
+    log_usage(db, tenant_id, None, "chat", result.input_token, result.output_token)
     return result

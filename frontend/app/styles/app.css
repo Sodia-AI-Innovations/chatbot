@@ -638,3 +638,25 @@ h1, h2 { letter-spacing: -0.01em; }
   .user-row .hide-sm { display: none; }
   .search { min-width: 0; width: 100%; }
 }
+
+/* ---- add-link form ---- */
+.link-form { margin-bottom: 14px; display: grid; gap: 8px; }
+.link-row { display: flex; gap: 8px; align-items: stretch; }
+.link-input {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+  padding: 0 12px; background: var(--surface-2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.link-input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(224, 64, 251, 0.15); }
+.link-input input {
+  flex: 1; min-width: 0; padding: 10px 0; font: inherit; font-size: 14px;
+  background: transparent; color: var(--text); border: 0; outline: none;
+}
+.link-row .btn { flex-shrink: 0; white-space: nowrap; justify-content: center; }
+.link-crawl { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.link-crawl input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+.file-badge.url { background: #dcfce7; color: #16a34a; }
+@media (prefers-color-scheme: dark) {
+  .file-badge.url { background: #12301f; color: #4ade80; }
+}

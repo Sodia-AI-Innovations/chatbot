@@ -37,6 +37,6 @@ def widget_chat(
     rag: RagService = Depends(get_rag_service),
     db: Session = Depends(get_db),
 ):
-    return rag.ask(body.question, tenant_id=str(bt.id), document_ids=None)
-    log_usage(db, str(bt.id), None, "chat", result.input_tokens, result.output_tokens)
+    result = rag.ask(body.question, tenant_id=str(bt.id), document_ids=None)
+    log_usage(db, str(bt.id), None, "chat", result.input_token, result.output_token)
     return result

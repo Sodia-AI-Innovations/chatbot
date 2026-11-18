@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useFetcher } from "@remix-run/react";
-import { AlertCircle, FileText, Loader2, Trash2, Upload } from "lucide-react";
+import { AlertCircle, FileText,Globe, Link2, Loader2, Trash2, Upload } from "lucide-react";
 
 const ALLOWED = [".pdf", ".docx", ".txt"];
 const MAX_MB = 10;
@@ -8,6 +8,10 @@ const MAX_MB = 10;
 export default function SiteDocuments({ documents, loadError }) {
     const uploader = useFetcher();
     const remover = useFetcher();
+    const linker = useFetcher();
+    const linkFormRef = useRef(null);
+    const linking = linker.state !== "idle";
+    const linkError = linker.data && !linker.data.ok ? linker.data.error : "";
     const formRef = useRef(null);
     const [localError, setLocalError] = useState("");
 
@@ -15,6 +19,9 @@ export default function SiteDocuments({ documents, loadError }) {
     const uploadError = uploader.data && !uploader.data.ok ? uploader.data.error : "";
     const removeError = remover.data && !remover.data.ok ? remover.data.error : "";
     const deletingId = remover.state !== "idle" ? remover.formData?.get("document_id") : null;
+     useEffect(() => {
+        if (linker.state === "idle" && linker.data?.ok) linkFormRef.current?.reset();
+    }, [linker.state, linker.data]);
 
     function handleChange(event) {
         const files = Array.from(event.target.files);
@@ -60,6 +67,29 @@ export default function SiteDocuments({ documents, loadError }) {
                 <p className="error"><AlertCircle size={16}/> {localError || uploadError}</p>
              )}
            </uploader.Form>
+            <linker.Form method="post" ref={linkFormRef} className="link-form">
+             <input type="hidden" name="intent" value="add-url"/>
+             <div className="link-row">
+                <div className="link-input">
+                    <Link2 size={16}/>
+                    <input
+                        type="url"
+                        name="url"
+                        placeholder="https://yourcompany.com/about"
+                        required
+                        disabled={linking}
+                    />
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={linking}>
+                    {linking ? <Loader2 size={16} className="spin"/> : "Add link"}
+                </button>
+             </div>
+             <label className="link-crawl">
+                <input type="checkbox" name="crawl" disabled={linking}/>
+                Crawl the whole site (up to 15 pages)
+             </label>
+             {linkError && <p className="error"><AlertCircle size={16}/> {linkError}</p>}
+           </linker.Form>
 
            {loadError && <p className="error"><AlertCircle size={16}/>{loadError}</p>}
 
